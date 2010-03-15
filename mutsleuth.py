@@ -1,7 +1,7 @@
 import sys
-import pickle
 import inspect
 import traceback
+import copy
 
 _current_frame = None
 
@@ -21,12 +21,19 @@ def watch(expr):
     _record()
     sys.settrace(_instrument)
 
+def tag(val):
+    try:
+        return hash(val)
+    except TypeError:
+        pass
+    return copy.copy(val)
+
 def _record():
     global _value_id, _value_dump
     try:
         obj = eval(_watched_expr, _watched_locals, _watched_globals)
         _value_id = id(obj)
-        _value_dump = pickle.dumps(obj) # XXX: We need a better mechanism
+        _value_dump = tag(obj)
     except NameError:
         _value_id = None
         _value_dump = None
